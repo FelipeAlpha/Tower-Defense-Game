@@ -1,3 +1,5 @@
+import { inventory } from 'Assets/js/inventory.js';
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -106,7 +108,7 @@ class StrongEnemy extends Enemy {
 
     draw() {
         ctx.fillStyle = 'darkred'
-        ctx.fillStyle(this.x, this.y, this.width, this.height);
+        ctx.fillRect(this.x, this.y, this.width, this.height);
     }
 }
 
@@ -145,28 +147,61 @@ function gameLoop() {
         tower.shoot();
     });
 
-    enemies.forEach(enemy => {
+    enemies.forEach((enemy, enemyIndex) => {
         enemy.update();
         enemy.draw();
     });
 
-    projectiles.forEach((projectile, index) => {
+    projectiles.forEach((projectile, projectileIndex) => {
         projectile.update();
         projectile.draw();
 
-        if (projectile.x > canvas.width) {
-            projectiles.splice(index, 1);
-        }
+        enemies.forEach((enemy, enemyIndex) => {
+            if (checkCollision(projectile, enemy)) {}
+            enemies.splice(enemyIndex, 1);
+            projectiles.splice(projectileIndex, 1);
+            resources += 10;
+            hitSound.play();
+        })
+
     });
 
-    requestAnimationFrame(gameLoop);
-}
+    if (projectile.x > canvas.width) {
+        projectiles.splice(projectileIndex, 1);
+    }
+};
 
-function setupGame() {
-    towers.push(new Tower(100, 100));
-    enemies.push(new Enemy(0, 200, 1));
+const levels = [
+    {
+        towers: [
+            { type: 'FastTower', x: 100, y: 100 },
+            { type: 'StrongTower', x: 200, y: 150 },
+        ],
+        enemies: [
+            { type: 'FastEnemy', x: 0, y: 200 },
+            { type: 'StrongEnemy', x: 0, y: 250 },
+        ]
+    }
+]
+
+let currentlevel = 0;
+
+function loadLevel(levelIndex) {
+    towers = [];
+    enemies = [];
+    projectiles = [];
+
+    levels[levelIndex].towers.forEach(t => {
+        if (t.type === 'FastTower') towers.push(new FastTower(t.x, t.y));
+        else if (t.type === 'StrongTower') towers.push(new StrongTower(t.x, t.y));
+    });
+
+    levels[levelIndex].enemies.forEach(e => {
+        if (e.type === 'FastEnemy') enemies.push(new FastEnemy(e.x, e.y));
+        else if (e.type === 'StrongEnemy') enemies.push(new StrongEnemy(e.x, e.y));
+    });
 
     gameLoop();
 }
 
-setupGame();
+loadLevel(currentlevel);
