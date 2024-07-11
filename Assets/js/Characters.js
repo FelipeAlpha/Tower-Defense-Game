@@ -1,4 +1,4 @@
-import { inventory } from 'Assets/js/inventory.js';
+import { inventory } from './Assets/js/Inventory.js';
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -9,10 +9,10 @@ let projectiles = [];
 let resources = 100;
 
 const towerImage = new Image();
-towerImage.src = 'Assets/Imgs';
+towerImage.src = 'Assets/Imgs/Pirâmede Torre.png';
 
 const enemyImage = new Image();
-enemyImage.src = 'Assets/Imgs';
+enemyImage.src = 'Assets/Imgs/Robô inimigo.png';
 
 const shootSound = new Audio('Assets/Audios')
 const hitSound = new Audio('Assets/Audios')
@@ -37,6 +37,7 @@ class Tower {
         if (now - this.lastShot >= this.shootingCooldown) {
             projectiles.push(new Projectile(this.x + this.width / 2, this.y, 5, 5, 'red'))
             this.lastShot = now;
+            shootSound.play();
         }
     }
 }
@@ -107,7 +108,7 @@ class StrongEnemy extends Enemy {
     }
 
     draw() {
-        ctx.fillStyle = 'darkred'
+        ctx.fillStyle = 'darkred';
         ctx.fillRect(this.x, this.y, this.width, this.height);
     }
 }
@@ -157,18 +158,21 @@ function gameLoop() {
         projectile.draw();
 
         enemies.forEach((enemy, enemyIndex) => {
-            if (checkCollision(projectile, enemy)) {}
-            enemies.splice(enemyIndex, 1);
-            projectiles.splice(projectileIndex, 1);
-            resources += 10;
-            hitSound.play();
-        })
+            if (checkCollision(projectile, enemy)) {
+                enemy.health -= 10;
+                enemies.splice(enemyIndex, 1);
+                projectiles.splice(projectileIndex, 1);
+                resources += 10;
+                hitSound.play();
+            }
+
+        });
 
     });
 
-    if (projectile.x > canvas.width) {
-        projectiles.splice(projectileIndex, 1);
-    }
+    projectiles = projectiles.filter(projectile => projectile.x <= canvas.width);
+
+    requestAnimationFrame(gameLoop);
 };
 
 const levels = [
